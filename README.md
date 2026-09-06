@@ -68,6 +68,89 @@
 
 另外，`S0`、`D1`、`D2`、`D3`、`D4` 是**实验场景编号**而不是评价指标。`S0` 通常表示稳定/无漂移对照；`D*` 表示不同漂移场景。由于不同周次会扩展场景集合，具体定义以对应 `experiments/week*/README.md` 和配置文件为准。
 
+### 指标计算方法
+
+下面给出仓库中主要指标的实际计算方式，便于理解结果中的 `1.0`、`0.6225` 等数值从何而来。
+
+- **Poison Hit@K（投毒命中率）**：单次试验中，只要 Top-K 检索结果里至少包含一条投毒记忆，就记为一次命中。多次试验汇总时：
+
+  `Poison Hit@K = 命中投毒记忆的试验数 / 总试验数`
+
+- **ASR（Attack Success Rate，攻击成功率）**：在 poisoned（投毒）试验中，最终被攻击目标成功影响的试验比例：
+
+  `ASR = 攻击成功的投毒试验数 / 投毒试验总数`
+
+- **Clean Correct Rate（干净样本正确率）**：正常任务中输出或指导保持正确的比例：
+
+  `Clean Correct Rate = 正确的 clean 试验数 / clean 试验总数`
+
+- **Defense Block Rate（防御阻断率）**：进入对应防御环节的投毒/可疑记忆中，被该防御成功拦截的比例：
+
+  `Defense Block Rate = 被成功阻断的投毒项（或试验）数 / 进入该防御环节的投毒项（或试验）总数`
+
+- **Accuracy / Precision / Recall / F1-score**：Week 6 根据 TP、TN、FP、FN 计算：
+
+  `Accuracy = (TP + TN) / (TP + TN + FP + FN)`
+
+  `Precision = TP / (TP + FP)`
+
+  `Recall = TP / (TP + FN)`
+
+  `F1-score = 2 × Precision × Recall / (Precision + Recall)`
+
+  代码中还计算了 `FPR（False Positive Rate，假阳性率） = FP / (FP + TN)` 和 `Specificity（特异度） = TN / (TN + FP)`。
+
+- **Retrieval Instability（检索不稳定度）**：Week 6 用漂移前后检索到的记忆 ID 集合计算 Jaccard 相似度，然后取其补值：
+
+  `Jaccard = |A ∩ B| / |A ∪ B|`
+
+  `Retrieval Instability = 1 - Jaccard`
+
+  当前 Week 6 行为漂移检测阈值固定为 `0.40`：当 `Retrieval Instability >= 0.40` 时，行为检测器判定出现检索行为漂移。
+
+### Risk Score / Risk 如何计算
+
+Risk Score 是 DPMF 根据多个信号加权得到的 **0～1 综合风险分数**，不是由 LLM 随意打分。分数越高，表示当前架构漂移同时伴随正常效用下降、检索不稳定或攻击暴露的程度越高。
+
+#### Week 5 风险模型
+
+Week 5 的 `risk_scorer.py` 使用以下启发式加权公式：
+
+`Risk = 0.25 × Configuration Change + 0.30 × Clean Utility Drop + 0.20 × Retrieval Instability + 0.25 × Attack Exposure`
+
+其中：
+
+- `Configuration Change`：DPMF 漂移检测器输出的 `change_score`，表示配置变化强度。
+- `Clean Utility Drop = max(0, clean_correct_rate_before - clean_correct_rate_after)`。
+- `Retrieval Instability = 1 - clean_retrieval_overlap`。
+- `Attack Exposure = attack_success_rate_after`，即漂移后的当前攻击成功率；Week 5 这里衡量的是**当前攻击暴露程度**，而不是攻击成功率相对基线的增量。
+
+风险等级划分为：
+
+- `LOW`：`Risk < 0.30`
+- `MEDIUM`：`0.30 <= Risk < 0.60`
+- `HIGH`：`Risk >= 0.60`
+
+#### Week 6 / Week 7 风险模型
+
+Week 6 为闭环实验重新整理了风险信号，Week 7 调度器使用的风险值来自这一版 DPMF 事件。公式为：
+
+`Risk = 0.35 × Structural Score + 0.25 × Behavioral Instability + 0.20 × Clean Utility Drop + 0.20 × Attack Exposure Increase`
+
+各项含义如下：
+
+- **Structural Score（结构变化分数）**：综合 Top-K 变化与检索策略变化。
+  - `TopK Score = min(|K_candidate - K_reference| / 4, 1)`；Week 6 将 Top-K 从 3 到 7 的差值 4 视为本轮实验中的最大变化强度。
+  - `Policy Score = 1`（检索策略发生变化），否则为 `0`。
+  - `Structural Score = min(1, 0.5 × TopK Score + 0.5 × Policy Score)`。
+- **Behavioral Instability**：对应场景的平均 `Retrieval Instability`。
+- **Clean Utility Drop**：相对于稳定基线，干净指导正确率的非负下降量。
+- **Attack Exposure Increase**：投毒指导信号增量与最终攻击成功率增量二者中的较大值；若没有增加则取 0。
+
+Week 6 / Week 7 同样采用：`LOW < 0.30`、`0.30 <= MEDIUM < 0.60`、`HIGH >= 0.60`。
+
+> **注意：Week 5 与 Week 6/7 的 Risk Score 属于两个阶段的原型风险模型，权重和“攻击暴露”的定义发生了调整，因此不同版本的风险绝对值不应直接横向比较。**例如 Week 5 的 D1 风险为 0.6167，而 Week 7 表格中的 D1 风险为 0.3542，并不代表同一个风险模型下风险突然下降；Week 7 使用的是 Week 6 闭环阶段重新计算的风险事件。比较场景风险时，应优先在同一周、同一风险模型内部比较。
+
 ## 仓库结构
 
 ```text
