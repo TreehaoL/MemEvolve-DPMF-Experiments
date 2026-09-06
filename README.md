@@ -31,6 +31,8 @@
 ├── data/
 │   └── webwalkerqa/
 │       └── simple_python_task.json
+├── doc/
+│   └── REPRODUCE.md
 ├── experiments/
 │   ├── week2/
 │   ├── week3/
@@ -62,12 +64,13 @@
 
 如果只想快速理解项目，可以按这个顺序阅读：
 
-1. `experiments/week2/README.md`：无防护投毒基线。
-2. `experiments/week3/README.md`：Top-K 与检索策略漂移。
-3. `experiments/week4/README.md`：F1 / F2 静态防御对照。
-4. `experiments/week5/README.md`：DPMF 漂移检测与风险评分。
-5. `experiments/week6/README.md`：检测准确率与端到端信号输出。
-6. `experiments/week7/README.md`：动态防御 scheduler 闭环。
+1. `doc/REPRODUCE.md`：从零复刻条件、复刻层级和运行边界。
+2. `experiments/week2/README.md`：无防护投毒基线。
+3. `experiments/week3/README.md`：Top-K 与检索策略漂移。
+4. `experiments/week4/README.md`：F1 / F2 静态防御对照。
+5. `experiments/week5/README.md`：DPMF 漂移检测与风险评分。
+6. `experiments/week6/README.md`：检测准确率与端到端信号输出。
+7. `experiments/week7/README.md`：动态防御 scheduler 闭环。
 
 ## 关键结果
 
@@ -132,6 +135,29 @@
 实验环境中还使用过 `crawl4ai` 作为辅助网页抓取与内容清洗工具，主要用于获取或整理 WebWalkerQA 相关输入材料。它不是 DPMF 漂移感知与防御闭环的核心模块，只是数据准备阶段的辅助依赖。
 
 需要注意：本公开仓库主要是七周实验归档，不是完整 MemEvolve / Flash-Searcher 原始工程的镜像。部分脚本依赖原始工程中的本地模块，例如 `EvolveLab`、`MemEvolve` 或相关 provider。如果要重新运行这些脚本，需要在原始 MemEvolve / Flash-Searcher 项目环境中执行，或先把这些本地模块补齐到 Python 路径中。
+
+## 复现范围说明
+
+仅凭本仓库可以复核实验设计、配置、结果文件和图表，但不能保证从零完整复刻所有 live 实验。不同层级的复现条件如下：
+
+| 复现目标 | 仅凭本仓库是否足够 | 说明 |
+|---|---|---|
+| 阅读每周实验设计与结论 | 可以 | 每周 README、配置、结果 JSON / CSV 和图表已保留 |
+| 核对关键指标 | 可以 | 可直接查看 `experiments/week*/results/` 中的结构化结果 |
+| 重新生成部分汇总表和图表 | 基本可以 | 依赖已有 `results/` 文件和 Python 绘图/统计依赖 |
+| 重新运行离线分析脚本 | 部分可以 | 若脚本只读取本仓库结果文件，一般可以运行 |
+| 重新运行记忆检索、投毒和防御 live 实验 | 不完全足够 | 需要原始 MemEvolve / Flash-Searcher 工程、本地模块、API 配置和对应运行环境 |
+| 从零完整复刻七周实验 | 不足够 | 还需要原始工程代码、可用 LLM API、初始记忆库/运行状态和相同的实验执行流程 |
+
+因此，本仓库更准确的定位是“七周实验归档与结果复核仓库”。如果需要完整复刻，应先准备原始 MemEvolve / Flash-Searcher 环境，再将本仓库中的 `experiments/`、`data/` 和相关脚本放入对应项目结构中运行。
+
+完整复刻还需要额外确认：
+
+- 原始 MemEvolve / Flash-Searcher 工程版本和本地模块路径。
+- `.env` 中的 `OPENAI_API_KEY`、`OPENAI_BASE_URL` 和 `DEFAULT_MODEL`。
+- Python / Conda 依赖是否与 `environment.yml`、`requirements.txt` 一致。
+- live 实验依赖在线模型，结果可能受模型版本、接口响应和网络状态影响。
+- 本仓库没有上传虚拟环境、缓存、完整日志和本地长期记忆存储目录。
 
 ## 环境重建方式
 
