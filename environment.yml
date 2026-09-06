@@ -1,0 +1,17 @@
+name: memevolve-dpmf
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - pyyaml
+  - scikit-learn
+  - tqdm
+  - python-dotenv
+  - pip:
+      - openai

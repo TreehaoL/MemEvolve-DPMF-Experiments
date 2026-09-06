@@ -2,11 +2,9 @@
 
 自进化 Agent 记忆架构漂移感知与投毒动态防御策略研究的七周实验归档。
 
-本仓库整理了基于 MemEvolve / Flash-Searcher 的记忆投毒、架构漂移、DPMF 漂移感知、风险评估与动态防御闭环实验。实验目标不是单纯复现一次错误问答，而是观察自进化 Agent 在长期记忆被污染、检索架构发生变化时，投毒记忆是否会更容易进入上下文，并进一步验证 DPMF 是否能够感知漂移、评估风险并触发防御。
+本仓库整理了基于 MemEvolve / Flash-Searcher 的记忆投毒、架构漂移、DPMF 漂移感知、风险评估与动态防御闭环实验。仓库重点保存实验脚本、配置、结构化结果、图表和每周说明，便于查看七周工作的推进过程和主要结论。
 
 ## 项目主线
-
-七周实验按递进关系展开：
 
 | 阶段 | 周次 | 核心内容 | 输出 |
 |---|---|---|---|
@@ -41,6 +39,9 @@
 │   ├── week6/
 │   └── week7/
 ├── minimal_memory_demo.py
+├── environment.yml
+├── requirements.txt
+├── .env.example
 └── README.md
 ```
 
@@ -49,7 +50,7 @@
 | 目录 | 作用 |
 |---|---|
 | `configs/` | 实验配置，例如 Top-K、retrieval policy、模型和场景设置 |
-| `scripts/` | 可复现实验脚本、统计脚本和绘图脚本 |
+| `scripts/` | 实验脚本、统计脚本和绘图脚本 |
 | `results/` | JSON / CSV 形式的实验结果和汇总指标 |
 | `results/figures/` | 实验图表 |
 | `snapshots/` | 漂移前后的架构快照 |
@@ -116,18 +117,36 @@
 | D3 | 0.5400 | F2 | 1.0 | 0.0 |
 | D4 | 0.6225 | F1 -> F2 | 1.0 | 0.0 |
 
-## 复现实验
+## 环境说明
 
-建议在原始 MemEvolve / Flash-Searcher 项目环境中运行。
+本仓库不上传 `.venv`、Conda 环境目录或 Anaconda 安装目录。原因是这些目录体积很大，并且包含大量本机路径、缓存和平台相关文件，不适合放进 GitHub。
+
+仓库中建议上传的是可重建环境的描述文件：
+
+| 文件 | 作用 |
+|---|---|
+| `environment.yml` | Conda 环境定义，适合重新创建实验环境 |
+| `requirements.txt` | pip 依赖列表，适合在已有 Python 环境中补装依赖 |
+| `.env.example` | API 配置模板，不包含真实 key |
+
+需要注意：本公开仓库主要是七周实验归档，不是完整 MemEvolve / Flash-Searcher 原始工程的镜像。部分脚本依赖原始工程中的本地模块，例如 `EvolveLab`、`MemEvolve` 或相关 provider。如果要重新运行这些脚本，需要在原始 MemEvolve / Flash-Searcher 项目环境中执行，或先把这些本地模块补齐到 Python 路径中。
+
+## 环境重建方式
+
+方式一：使用 Conda 创建环境。
 
 ```powershell
-conda activate memevolve
-cd E:\AIProjects\MemEvolve\Flash-Searcher-main
-$env:PYTHONPATH = (Get-Location).Path
-$env:PYTHONIOENCODING = "utf-8"
+conda env create -f environment.yml
+conda activate memevolve-dpmf
 ```
 
-部分实验依赖在线 LLM API。需要在本地 `.env` 中配置：
+方式二：在已有 Python 3.10 环境中安装 pip 依赖。
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+如果要运行依赖在线 LLM API 的实验，需要参考 `.env.example` 在本地创建 `.env`：
 
 ```text
 OPENAI_API_KEY=your_api_key
@@ -135,9 +154,17 @@ OPENAI_BASE_URL=https://api.deepseek.com
 DEFAULT_MODEL=deepseek-v4-flash
 ```
 
-安全原因：本仓库不包含 `.env`、API key、虚拟环境、缓存、完整运行日志和本地存储目录。
+安全原因：真实 `.env`、API key、虚拟环境、缓存、完整运行日志和本地存储目录不放入仓库。
 
-## 常用命令
+## 运行方式
+
+以下命令适用于已经配置好原始 MemEvolve / Flash-Searcher 环境的本地项目。
+
+```powershell
+cd <Flash-Searcher-main 项目根目录>
+$env:PYTHONPATH = (Get-Location).Path
+$env:PYTHONIOENCODING = "utf-8"
+```
 
 Week 7 汇总：
 
@@ -173,4 +200,3 @@ python experiments\week6\scripts\build_week6_summary.py
 ```text
 记忆投毒基线 -> 架构漂移模拟 -> 静态防御对照 -> DPMF 漂移感知 -> 检测评估 -> 动态防御闭环
 ```
-
