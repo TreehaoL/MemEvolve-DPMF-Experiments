@@ -129,6 +129,8 @@
 | `requirements.txt` | pip 依赖列表，适合在已有 Python 环境中补装依赖 |
 | `.env.example` | API 配置模板，不包含真实 key |
 
+实验环境中还使用过 `crawl4ai` 作为辅助网页抓取与内容清洗工具，主要用于获取或整理 WebWalkerQA 相关输入材料。它不是 DPMF 漂移感知与防御闭环的核心模块，只是数据准备阶段的辅助依赖。
+
 需要注意：本公开仓库主要是七周实验归档，不是完整 MemEvolve / Flash-Searcher 原始工程的镜像。部分脚本依赖原始工程中的本地模块，例如 `EvolveLab`、`MemEvolve` 或相关 provider。如果要重新运行这些脚本，需要在原始 MemEvolve / Flash-Searcher 项目环境中执行，或先把这些本地模块补齐到 Python 路径中。
 
 ## 环境重建方式
@@ -145,6 +147,15 @@ conda activate memevolve-dpmf
 ```powershell
 python -m pip install -r requirements.txt
 ```
+
+如果运行涉及网页抓取或 WebWalkerQA 数据准备的脚本，可能还需要安装并初始化 `crawl4ai` / Playwright 浏览器环境：
+
+```powershell
+python -m pip install crawl4ai playwright
+python -m playwright install chromium
+```
+
+如果只查看本仓库中的实验配置、结构化结果和图表，不需要运行 `crawl4ai`。
 
 如果要运行依赖在线 LLM API 的实验，需要参考 `.env.example` 在本地创建 `.env`：
 
