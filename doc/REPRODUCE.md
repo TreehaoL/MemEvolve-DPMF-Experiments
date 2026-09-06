@@ -77,6 +77,20 @@ E:\AIProjects\MemEvolve-Reproduce\
     └── .env.example
 ```
 
+## 实验数据说明
+
+`data/webwalkerqa/simple_python_task.json` 是本仓库提供的最小 WebWalkerQA 风格任务样例，用于说明网页任务输入格式。该样例包含：
+
+| 字段 | 说明 |
+|---|---|
+| `question` | 实验中的事实探针问题 |
+| `answer` | 判断回答是否正确的标准答案 |
+| `root_url` | 任务来源网页 |
+| `info` | 领域、难度、语言和来源类型等元信息 |
+| `golden_path` | 多跳网页任务中的参考路径，本样例中为空 |
+
+七周实验主要围绕该 Python 作者事实探针构造 clean / poisoned 记忆检索、架构漂移和防御对照。复现者可以先用该最小样例确认数据格式，再按各周 README 运行更完整的实验脚本。
+
 ## 叠加实验文件
 
 将本实验仓库中的文件复制到上游工程的 `Flash-Searcher-main` 目录：
