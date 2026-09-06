@@ -4,6 +4,8 @@
 
 本仓库整理了基于 MemEvolve / Flash-Searcher 的记忆投毒、架构漂移、DPMF 漂移感知、风险评估与动态防御闭环实验。仓库重点保存实验脚本、配置、结构化结果、图表和每周说明，便于查看七周工作的推进过程和主要结论。
 
+> **项目定位**：本仓库是“七周实验归档与结果复核仓库”，不是对某一篇论文的完整复现。实验直接建立在 MemEvolve 工程上，并参考了记忆注入、记忆投毒、主动记忆防御与 memory misevolution 等相关工作；其中 DPMF、Architecture Drift 的实验化定义、F0/F1/F2 防御算子以及 Risk Score 的具体组合方式均为本项目在暑期实验阶段构造的原型方案。
+
 ## 复现指南
 
 本仓库采用“实验归档仓库 + 上游原始工程”的复现方式。完整重跑 live（在线实跑）实验时，需要先准备上游 MemEvolve / Flash-Searcher 工程，再叠加本仓库中的实验脚本、配置和数据。
@@ -32,13 +34,33 @@
 ## 核心概念
 
 - **记忆投毒（Memory Poisoning）**：向 Agent 长期记忆中写入伪造或恶意经验，使后续检索、回答和决策受到污染。
-- **架构漂移（Architecture Drift）**：记忆系统的结构、参数或策略发生变化，例如 Top-K 从 3 增加到 5，或检索策略从语义相关性优先变为历史成功率优先。
-- **DPMF（Drift Perception Middleware Framework）**：漂移感知中间件框架，用于记录架构状态、检测漂移、计算风险并推荐防御。
+- **架构漂移（Architecture Drift）**：本项目对 Agent 记忆系统“结构、参数或策略状态发生变化”的实验化定义。例如 Top-K 从 3 增加到 5，或检索策略从语义相关性优先变为历史成功率优先。该概念受到自进化记忆架构研究的启发，但本仓库中的具体漂移类型与检测规则由本项目自行定义。
+- **DPMF（Drift Perception Middleware Framework）**：本项目设计的漂移感知中间件原型，用于记录架构状态、检测漂移、汇总行为证据、计算风险并推荐防御。
 - **Top-K**：一次检索中返回相关度最高的 K 条记忆。例如 Top-K=3 表示只取前三条检索结果。
 - **F0**：无防御基线，用于和启用防御后的结果进行对照。
-- **F1**：检索前静态历史统计过滤，在记忆进入检索链路前筛除可疑记忆。
-- **F2（Retrieval Trust Gate）**：检索可信门控。在检索完成后、进入 synthesis（记忆指导生成/综合）前再次判断记忆是否可信。
+- **F1**：本项目封装的检索前静态过滤算子，在记忆进入检索链路前筛除可疑记忆。
+- **F2（Retrieval Trust Gate）**：本项目封装的检索可信门控算子。在检索完成后、进入 synthesis（记忆指导生成/综合）前再次判断记忆是否可信。
 - **scheduler（调度器）**：读取 DPMF 标准化事件，根据漂移类型、风险和防御建议自动选择 F0/F1/F2。
+
+## 相关研究与本项目的关系
+
+下面列出本项目推进过程中重点关注的六项工作，并明确它们与当前七周实验的关系。这样可以区分“直接使用”“思想参考”和“相关工作”，避免把本项目自己的原型设计误写成论文复现。
+
+| 工作 | 主要关注点 | 在本项目中的实际作用 | 是否完整复现 |
+|---|---|---|---|
+| **MemEvolve: Meta-Evolution of Agent Memory Systems** [1] | 记忆内容与记忆架构的联合演化，EvolveLab 模块化记忆框架 | **直接实验基础**。本项目实际使用 MemEvolve / Flash-Searcher、EvolveLab、`LightweightMemoryProvider`、`take_in_memory()` 等组件开展实验 | 否；使用其工程作为实验载体 |
+| **A-Mem: Agentic Memory for LLM Agents** [2] | 动态组织、链接和演化 Agent memory | **研究背景**。支撑“Agent memory 并非固定静态存储，而可能持续组织和演化”的问题背景 | 否 |
+| **Memory Injection Attacks on LLM Agents via Query-Only Interaction（MINJA）** [3] | 仅通过查询交互向 Agent memory 注入恶意记录 | **攻击思想参考**。Week 2 构造了简化、可控的记忆注入/投毒证据链，但没有完整实现 MINJA 的 bridging steps、indication prompt 与 progressive shortening | 否 |
+| **Memory poisoning attacks ... via deceptive semantic reasoning（DSRM）** [4] | 将伪造历史知识/经验写入 RAG-based Agent memory 并诱导后续决策 | **威胁模型与安全评估背景**。用于理解“恶意历史经验被检索后可持续影响 Agent”的攻击面 | 否 |
+| **A-MemGuard: A Proactive Defense Framework for LLM-Based Agent Memory** [5] | 面向 Agent memory 的主动检测、自检查与自纠正防御 | **防御相关工作**。说明记忆安全防御可以从静态过滤走向主动、自适应机制；本项目的 F1/F2 并不是 A-MemGuard 算法的复现 | 否 |
+| **MemEvoBench: Benchmarking Memory MisEvolution in LLM Agents** [6] | 长时交互中污染/偏置记忆积累导致的 memory misevolution 与 behavioral drift | **评测与研究动机背景**。与本项目关注“记忆状态变化—行为漂移—风险”的问题高度相关，但当前七周实验没有运行 MemEvoBench benchmark | 否 |
+
+### 引用边界说明
+
+- **DPMF** 是本项目为了把“架构状态采集 → 漂移检测 → 风险评估 → 防御推荐/调度”串起来而提出的实验中间件原型，不是上述论文中的现成模块。
+- **Architecture Drift** 在本项目中是一个工程化、可观测的实验定义，用于描述 Top-K、retrieval policy 等记忆架构状态变化；它与 MemEvolve 的“memory architecture evolution”和 MemEvoBench 的“behavioral drift / memory misevolution”有关联，但并不等同于任何一篇论文中的原始术语定义。
+- **F1 / F2** 是本项目的简化防御算子。A-MemGuard 等相关研究为“主动记忆防御”提供研究背景，但当前 F1/F2 的实现和规则并非直接复制 A-MemGuard。
+- **Risk Score 的具体公式、权重和 LOW/MEDIUM/HIGH 阈值均为本项目原型实验设置，不是从某篇论文直接摘取的标准公式。**文献主要为风险维度的选择提供研究动机，而不是为 `0.35 / 0.25 / 0.20 / 0.20` 等系数背书。
 
 ## 指标与英文缩写速查
 
@@ -47,20 +69,25 @@
 | 缩写 / 指标 | 英文全称 | 本项目中的含义 |
 |---|---|---|
 | **Poison Hit@K** | Poison Hit at K | 投毒记忆是否进入前 K 条检索结果。本文常用 **Poison Hit@3**；多次试验汇总为 1.0 时，表示每次试验的 Top-3 中都命中了投毒记忆。 |
-| **ASR** | Attack Success Rate | **攻击成功率**。攻击最终成功影响回答或记忆指导的试验比例；ASR=1.0 表示攻击成功率 100%，ASR=0.0 表示实验中未观察到成功攻击。 |
-| **Clean Correct Rate / clean correctness** | Clean Correct Rate | **干净样本正确率**。没有把攻击成功视为目标时，系统在正常任务上的正确比例，用于衡量防御是否损害正常效用。 |
+| **ASR** | Attack Success Rate | **攻击成功率**。攻击最终成功影响回答或记忆指导的试验比例；ASR=1.0 表示攻击成功率 100%，ASR=0.0 表示实验中未观察到成功攻击。ASR 是对抗攻击研究中常见指标，但“什么算攻击成功”由本项目的具体实验任务定义。 |
+| **Clean Correct Rate / clean correctness** | Clean Correct Rate | **干净样本正确率**。系统在正常任务上的正确比例，用于衡量防御是否损害正常效用。 |
 | **Defense Block Rate** | Defense Block Rate | **防御阻断率**。进入相应防御环节的可疑/投毒记忆中，被成功拦截的比例。 |
 | **Accuracy** | Accuracy | **检测准确率**，即全部检测样本中判断正确的比例。 |
 | **Precision** | Precision | **精确率**，被系统判为“发生漂移”的样本中，真正发生漂移的比例。Precision 高意味着误报较少。 |
 | **Recall** | Recall | **召回率**，真正发生漂移的样本中，被系统成功检测出的比例。Recall 高意味着漏报较少。 |
 | **F1-score** | F1 Score | Precision 与 Recall 的调和平均，用于综合评价检测效果。**这里的 F1-score 是检测指标，不是上面的 F1 防御算子。** |
+| **FPR** | False Positive Rate | **假阳性率 / 误报率**，实际没有漂移的样本中被错误判为漂移的比例。 |
+| **Specificity** | Specificity | **特异度**，实际没有漂移的样本中被正确识别为无漂移的比例。 |
 | **TP** | True Positive | **真正例**：实际发生漂移，系统也判断发生漂移。 |
 | **TN** | True Negative | **真负例**：实际没有漂移，系统也判断没有漂移。 |
 | **FP** | False Positive | **假正例 / 误报**：实际没有漂移，但系统判断发生漂移。 |
 | **FN** | False Negative | **假负例 / 漏报**：实际发生漂移，但系统没有检测出来。 |
-| **Risk Score / Risk** | Risk Score | **综合风险分数**。DPMF 根据架构变化、正常效用变化、检索不稳定性和攻击暴露等信号综合计算；数值越高表示当前状态的安全风险越高。 |
+| **Jaccard** | Jaccard Similarity | 两个检索记忆 ID 集合的交并比，用于衡量漂移前后检索结果的相似程度。 |
+| **Retrieval Instability** | Retrieval Instability | **检索不稳定度**，本项目定义为 `1 - Jaccard`；越大表示漂移前后检索集合变化越明显。 |
+| **Risk Score / Risk** | Risk Score | **综合风险分数**。DPMF 根据架构变化、正常效用变化、检索不稳定性和攻击暴露等信号综合计算；数值越高表示当前状态的安全风险越高。该分数是本项目原型指标，不是已有论文中的统一标准分数。 |
 | **Structural Detection** | Structural Detection | **结构漂移检测**，重点检查 Top-K、检索策略等架构配置本身是否发生变化。 |
-| **Behavioral Detection** | Behavioral Detection | **行为漂移检测**，重点检查检索结果、正常效用、投毒暴露等行为信号是否发生异常变化。 |
+| **Behavioral Detection** | Behavioral Detection | **行为漂移检测**，重点检查检索结果等行为信号是否发生异常变化。 |
+| **Fused DPMF Detection** | Fused DPMF Detection | **融合漂移检测**。Week 6 中将结构检测与行为检测合并；只要结构或行为侧满足条件即可形成融合漂移信号。 |
 | **LLM** | Large Language Model | **大语言模型**。本实验中的在线回答、部分后验解释等环节会调用 LLM。 |
 | **API** | Application Programming Interface | **应用程序接口**。live 实验通过模型 API 调用在线模型。 |
 | **JSON** | JavaScript Object Notation | 常用结构化数据格式，本仓库用于保存实验配置、事件和结果。 |
@@ -98,7 +125,13 @@
 
   `F1-score = 2 × Precision × Recall / (Precision + Recall)`
 
-  代码中还计算了 `FPR（False Positive Rate，假阳性率） = FP / (FP + TN)` 和 `Specificity（特异度） = TN / (TN + FP)`。
+  同一评估脚本还计算：
+
+  `FPR = FP / (FP + TN)`
+
+  `Specificity = TN / (TN + FP)`
+
+  对应实现：[experiments/week6/scripts/evaluate_dpmf_accuracy.py](experiments/week6/scripts/evaluate_dpmf_accuracy.py)
 
 - **Retrieval Instability（检索不稳定度）**：Week 6 用漂移前后检索到的记忆 ID 集合计算 Jaccard 相似度，然后取其补值：
 
@@ -108,9 +141,13 @@
 
   当前 Week 6 行为漂移检测阈值固定为 `0.40`：当 `Retrieval Instability >= 0.40` 时，行为检测器判定出现检索行为漂移。
 
+  对应实现：[experiments/week6/scripts/evaluate_dpmf_accuracy.py](experiments/week6/scripts/evaluate_dpmf_accuracy.py)
+
 ### Risk Score / Risk 如何计算
 
-Risk Score 是 DPMF 根据多个信号加权得到的 **0～1 综合风险分数**，不是由 LLM 随意打分。分数越高，表示当前架构漂移同时伴随正常效用下降、检索不稳定或攻击暴露的程度越高。
+Risk Score 是 DPMF 根据多个信号加权得到的 **0～1 综合风险分数**，不是由 LLM 随意打分，也不是直接引用某篇论文中的风险公式。它是本项目为了闭环实验而构造的启发式原型指标。
+
+风险维度的选择与相关研究关注的问题相呼应：MemEvolve / A-Mem 关注记忆系统的动态组织和演化 [1,2]；MINJA 与 DSRM 展示了恶意记忆注入及历史经验污染的攻击面 [3,4]；A-MemGuard 强调主动、自纠正的记忆防御 [5]；MemEvoBench 则关注污染记忆长期累积后的 behavioral drift / memory misevolution [6]。**但是下面的权重、阈值及具体组合方式由本项目自行设定。**
 
 #### Week 5 风险模型
 
@@ -131,6 +168,8 @@ Week 5 的 `risk_scorer.py` 使用以下启发式加权公式：
 - `MEDIUM`：`0.30 <= Risk < 0.60`
 - `HIGH`：`Risk >= 0.60`
 
+对应实现：[experiments/week5/scripts/risk_scorer.py](experiments/week5/scripts/risk_scorer.py)
+
 #### Week 6 / Week 7 风险模型
 
 Week 6 为闭环实验重新整理了风险信号，Week 7 调度器使用的风险值来自这一版 DPMF 事件。公式为：
@@ -149,7 +188,11 @@ Week 6 为闭环实验重新整理了风险信号，Week 7 调度器使用的风
 
 Week 6 / Week 7 同样采用：`LOW < 0.30`、`0.30 <= MEDIUM < 0.60`、`HIGH >= 0.60`。
 
-> **注意：Week 5 与 Week 6/7 的 Risk Score 属于两个阶段的原型风险模型，权重和“攻击暴露”的定义发生了调整，因此不同版本的风险绝对值不应直接横向比较。**例如 Week 5 的 D1 风险为 0.6167，而 Week 7 表格中的 D1 风险为 0.3542，并不代表同一个风险模型下风险突然下降；Week 7 使用的是 Week 6 闭环阶段重新计算的风险事件。比较场景风险时，应优先在同一周、同一风险模型内部比较。
+对应实现：[experiments/week6/scripts/run_dpmf_pipeline.py](experiments/week6/scripts/run_dpmf_pipeline.py)
+
+> **注意 1：Risk Score 是本项目原型公式。**`0.25 / 0.30 / 0.20 / 0.25` 与 `0.35 / 0.25 / 0.20 / 0.20` 均为实验阶段固定的启发式权重，没有声称经过大规模数据学习或来自某篇论文的标准参数。
+>
+> **注意 2：Week 5 与 Week 6/7 的 Risk Score 属于两个阶段的原型风险模型。**权重和“攻击暴露”的定义发生了调整，因此不同版本的风险绝对值不应直接横向比较。例如 Week 5 的 D1 风险为 0.6167，而 Week 7 表格中的 D1 风险为 0.3542，并不代表同一个风险模型下风险突然下降；Week 7 使用的是 Week 6 闭环阶段重新计算的风险事件。比较场景风险时，应优先在同一周、同一风险模型内部比较。
 
 ## 仓库结构
 
@@ -366,9 +409,13 @@ python experiments\week6\scripts\build_week6_summary.py
 
 ## 当前限制
 
-- 当前攻击样例主要围绕 Python 作者事实探针，后续需要扩展到更多任务和更多投毒模式。
+- 当前攻击样例主要围绕 Python 作者事实探针，样本规模和任务多样性有限，现有 ASR、检测准确率和防御效果不能直接外推到更复杂的真实 Agent 场景。
+- Week 2 的攻击流程是为了验证证据链而构造的简化记忆注入/投毒实验，**不是 MINJA 或 DSRM 的完整算法复现**。
+- 当前 Architecture Drift 主要覆盖 Top-K 与 retrieval policy 等可控变化，对索引结构、存储策略、记忆压缩/摘要策略以及更复杂的自进化架构变化覆盖不足。
 - `architecture_defense_mapping_v0.csv` 仍是初版知识库，覆盖 D1/D2 较充分，对组合漂移、索引漂移和存储策略漂移覆盖不足。
-- F2 当前是静态规则 Trust Gate，后续可进一步加入自适应阈值、多信号融合和跨任务泛化验证。
+- F1/F2 当前属于静态规则型防御原型，尚未实现 A-MemGuard 一类更完整的主动验证、自纠正或长期学习机制。
+- Risk Score 的权重和阈值为原型实验预设，尚未通过大规模数据学习、消融实验或跨任务校准得到最优参数。
+- 当前实验没有运行 MemEvoBench；后续可将其作为长时记忆污染、behavioral drift 与跨任务泛化的外部 benchmark。
 - 部分 live 实验依赖外部 API，结果可能存在轻微运行波动。
 
 ## 项目状态
@@ -380,3 +427,29 @@ python experiments\week6\scripts\build_week6_summary.py
 ```text
 记忆投毒基线 -> 架构漂移模拟 -> 静态防御对照 -> DPMF 漂移感知 -> 检测评估 -> 动态防御闭环
 ```
+
+当前阶段的核心价值在于完成了一个可运行的最小闭环：**当记忆架构发生可观测变化时，DPMF 将结构变化和检索行为变化标准化为风险事件，并由调度器选择防御算子，最终验证防御后的攻击成功率和正常任务效用。**
+
+## 参考文献
+
+> 下列文献用于说明本项目的实验平台、攻击背景、记忆演化背景和防御研究背景。引用这些文献不表示本仓库完整复现了对应方法；具体关系见上文“相关研究与本项目的关系”。
+
+[1] Guibin Zhang, Haotian Ren, Chong Zhan, Zhenhong Zhou, Junhao Wang, He Zhu, Wangchunshu Zhou, Shuicheng Yan. **MemEvolve: Meta-Evolution of Agent Memory Systems**. 2025. arXiv:2512.18746.  
+Paper: https://arxiv.org/abs/2512.18746  
+Official implementation: https://github.com/bingreeky/MemEvolve
+
+[2] Wujiang Xu, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, Yongfeng Zhang. **A-Mem: Agentic Memory for LLM Agents**. NeurIPS 2025. DOI: 10.52202/085713-0593.  
+Paper: https://proceedings.neurips.cc/paper_files/paper/2025/hash/19909c36f51abc4856b4560aff3d36d6-Abstract-Conference.html
+
+[3] Shen Dong, Shaochen Xu, Pengfei He, Yige Li, Jiliang Tang, Tianming Liu, Hui Liu, Zhen J. Xiang. **Memory Injection Attacks on LLM Agents via Query-Only Interaction**. NeurIPS 2025. DOI: 10.52202/085713-1554.  
+Paper: https://proceedings.neurips.cc/paper_files/paper/2025/hash/42a97bbd9844d2bf68596730af80bcdf-Abstract-Conference.html
+
+[4] Hao Jing, Fanxiao Li, Yunyun Dong, Wei Zhou, Renyang Liu. **Memory poisoning attacks on retrieval-augmented Large Language Model agents via deceptive semantic reasoning**. *Engineering Applications of Artificial Intelligence*, 167:113968, 2026. DOI: 10.1016/j.engappai.2026.113968.  
+Paper: https://doi.org/10.1016/j.engappai.2026.113968
+
+[5] Qianshan Wei, Tengchao Yang, Yaochen Wang, Xinfeng Li, Lijun Li, Zhenfei Yin, Yi Zhan, Thorsten Holz, Zhiqiang Lin, XiaoFeng Wang. **A-MemGuard: A Proactive Defense Framework for LLM-Based Agent Memory**. 2025. arXiv:2510.02373.  
+Paper: https://arxiv.org/abs/2510.02373  
+Official implementation: https://github.com/TangciuYueng/AMemGuard
+
+[6] Weiwei Xie, Shaoxiong Guo, Fan Zhang, Tian Xia, Xue Yang, Lizhuang Ma, Junchi Yan, Qibing Ren. **MemEvoBench: Benchmarking Memory MisEvolution in LLM Agents**. 2026. arXiv:2604.15774.  
+Paper: https://arxiv.org/abs/2604.15774
