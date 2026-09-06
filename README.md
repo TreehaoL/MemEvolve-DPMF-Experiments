@@ -1,0 +1,176 @@
+# MemEvolve-DPMF-Experiments
+
+自进化 Agent 记忆架构漂移感知与投毒动态防御策略研究的七周实验归档。
+
+本仓库整理了基于 MemEvolve / Flash-Searcher 的记忆投毒、架构漂移、DPMF 漂移感知、风险评估与动态防御闭环实验。实验目标不是单纯复现一次错误问答，而是观察自进化 Agent 在长期记忆被污染、检索架构发生变化时，投毒记忆是否会更容易进入上下文，并进一步验证 DPMF 是否能够感知漂移、评估风险并触发防御。
+
+## 项目主线
+
+七周实验按递进关系展开：
+
+| 阶段 | 周次 | 核心内容 | 输出 |
+|---|---|---|---|
+| 环境与投毒基线 | Week 2 | 构造无防护记忆投毒基线，验证投毒记忆进入 Top-K 并影响指导 | clean / poisoned 记忆库、重复实验、查询变体、自动写入结果 |
+| 架构漂移 | Week 3 | 构造 Top-K 漂移与检索策略漂移，比较漂移前后行为 | 漂移配置、架构快照、D1/D2 对照结果 |
+| 静态防御 | Week 4 | 比较 F1 检索前过滤与 F2 Retrieval Trust Gate | 防御矩阵、架构-防御映射知识库 |
+| DPMF 感知 | Week 5 | 将漂移检测、风险评分、防御推荐标准化为 DPMF 事件 | drift event schema、风险评分、在线复验 |
+| 检测评估 | Week 6 | 扩展 live case，评估 structural / behavioral detection | 检测指标、风险梯度、LLM 后验解释 |
+| 动态闭环 | Week 7 | 封装 F0/F1/F2 防御算子，由 scheduler 自动执行防御 | 闭环调度结果、Week7 汇总图表 |
+
+## 核心概念
+
+- **记忆投毒**：向 Agent 长期记忆中写入伪造经验，使后续检索和指导受到污染。
+- **架构漂移**：记忆系统的结构、参数或策略发生变化，例如 Top-K 从 3 增加到 5，或检索策略从语义相关性优先变为历史成功率优先。
+- **DPMF**：Drift Perception Middleware Framework，漂移感知中间件框架，用于记录架构状态、检测漂移、计算风险并推荐防御。
+- **F1**：检索前静态历史统计过滤。
+- **F2**：检索后、进入 synthesis 前的 Retrieval Trust Gate。
+- **scheduler**：读取 DPMF 标准化事件，根据风险和防御建议自动选择 F0/F1/F2。
+
+## 仓库结构
+
+```text
+.
+├── data/
+│   └── webwalkerqa/
+│       └── simple_python_task.json
+├── experiments/
+│   ├── week2/
+│   ├── week3/
+│   ├── week4/
+│   ├── week5/
+│   ├── week6/
+│   └── week7/
+├── minimal_memory_demo.py
+└── README.md
+```
+
+每周目录通常包含：
+
+| 目录 | 作用 |
+|---|---|
+| `configs/` | 实验配置，例如 Top-K、retrieval policy、模型和场景设置 |
+| `scripts/` | 可复现实验脚本、统计脚本和绘图脚本 |
+| `results/` | JSON / CSV 形式的实验结果和汇总指标 |
+| `results/figures/` | 实验图表 |
+| `snapshots/` | 漂移前后的架构快照 |
+| `schemas/` | DPMF 标准化事件 Schema |
+| `knowledge_base/` | 架构-防御映射知识库 |
+| `cases/` | live case 与评估样本定义 |
+
+## 快速阅读路线
+
+如果只想快速理解项目，可以按这个顺序阅读：
+
+1. `experiments/week2/README.md`：无防护投毒基线。
+2. `experiments/week3/README.md`：Top-K 与检索策略漂移。
+3. `experiments/week4/README.md`：F1 / F2 静态防御对照。
+4. `experiments/week5/README.md`：DPMF 漂移检测与风险评分。
+5. `experiments/week6/README.md`：检测准确率与端到端信号输出。
+6. `experiments/week7/README.md`：动态防御 scheduler 闭环。
+
+## 关键结果
+
+### Week 2：无防护投毒基线
+
+- 干净基线：7 条 strategic 记忆 + 4 条 operational 记忆。
+- 投毒后：8 条 strategic 记忆 + 5 条 operational 记忆。
+- Poison Hit@3：1.0。
+- Attack Success Rate：1.0。
+- 查询变体迁移测试中，投毒命中率和攻击成功率均为 1.0。
+
+### Week 3：架构漂移
+
+- D1 Top-K 3 -> 5：clean correctness 从 1.0 降至 0.6，投毒 ASR 保持 1.0。
+- D2 semantic-first -> history-first：clean correctness 从 1.0 降至 0.0，投毒 ASR 保持 1.0。
+
+### Week 4：静态防御
+
+| 漂移场景 | 防御 | Clean Correct Rate | Attack Success Rate | Defense Block Rate |
+|---|---|---:|---:|---:|
+| D1 | F0 无防御 | 0.6 | 1.0 | 0.0 |
+| D1 | F1 检索前过滤 | 0.4 | 0.0 | 1.0 |
+| D1 | F2 Trust Gate | 1.0 | 0.0 | 1.0 |
+| D2 | F0 无防御 | 0.0 | 1.0 | 0.0 |
+| D2 | F1 检索前过滤 | 0.0 | 0.0 | 1.0 |
+| D2 | F2 Trust Gate | 0.8 | 0.0 | 1.0 |
+
+### Week 5：DPMF 感知
+
+- D1 离线风险分数：0.6167，HIGH。
+- D2 离线风险分数：0.9120，HIGH。
+- 在线复验风险排序保持为：D2 > D1 > CONTROL。
+- DPMF 对无漂移对照输出 `drift_detected = false`。
+
+### Week 6：检测评估
+
+- Structural Detection：Accuracy / Precision / Recall / F1 均为 1.0000。
+- Behavioral Detection：Accuracy 0.8800，Recall 0.9750，F1 0.9286。
+- D4 combined 风险最高，Risk Score = 0.6225，HIGH。
+
+### Week 7：动态防御闭环
+
+| 场景 | Risk | Defense | Clean Correct | Week7 ASR |
+|---|---:|---|---:|---:|
+| S0 | 0.1500 | F0 | 1.0 | 0.0 |
+| D1 | 0.3542 | F2 | 1.0 | 0.0 |
+| D3 | 0.5400 | F2 | 1.0 | 0.0 |
+| D4 | 0.6225 | F1 -> F2 | 1.0 | 0.0 |
+
+## 复现实验
+
+建议在原始 MemEvolve / Flash-Searcher 项目环境中运行。
+
+```powershell
+conda activate memevolve
+cd E:\AIProjects\MemEvolve\Flash-Searcher-main
+$env:PYTHONPATH = (Get-Location).Path
+$env:PYTHONIOENCODING = "utf-8"
+```
+
+部分实验依赖在线 LLM API。需要在本地 `.env` 中配置：
+
+```text
+OPENAI_API_KEY=your_api_key
+OPENAI_BASE_URL=https://api.deepseek.com
+DEFAULT_MODEL=deepseek-v4-flash
+```
+
+安全原因：本仓库不包含 `.env`、API key、虚拟环境、缓存、完整运行日志和本地存储目录。
+
+## 常用命令
+
+Week 7 汇总：
+
+```powershell
+python experiments\week7\scripts\summarize_week7.py
+```
+
+Week 7 绘图：
+
+```powershell
+python experiments\week7\scripts\plot_week7_results.py
+```
+
+Week 6 汇总：
+
+```powershell
+python experiments\week6\scripts\build_week6_summary.py
+```
+
+## 当前限制
+
+- 当前攻击样例主要围绕 Python 作者事实探针，后续需要扩展到更多任务和更多投毒模式。
+- `architecture_defense_mapping_v0.csv` 仍是初版知识库，覆盖 D1/D2 较充分，对组合漂移、索引漂移和存储策略漂移覆盖不足。
+- F2 当前是静态规则 Trust Gate，后续可进一步加入自适应阈值、多信号融合和跨任务泛化验证。
+- 部分 live 实验依赖外部 API，结果可能存在轻微运行波动。
+
+## 项目状态
+
+当前仓库保存的是七周实验归档版本，重点用于展示实验设计、核心脚本、结构化结果和阶段性结论。
+
+七周主线已经完成：
+
+```text
+记忆投毒基线 -> 架构漂移模拟 -> 静态防御对照 -> DPMF 漂移感知 -> 检测评估 -> 动态防御闭环
+```
+
