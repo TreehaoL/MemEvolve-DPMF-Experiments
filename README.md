@@ -1,12 +1,12 @@
 # MemEvolve-DPMF-Experiments
 
-自进化 Agent 记忆架构漂移感知与投毒动态防御策略研究的七周实验归档。
+自进化 Agent（智能体）记忆架构漂移感知与投毒动态防御策略研究的七周实验归档。
 
 本仓库整理了基于 MemEvolve / Flash-Searcher 的记忆投毒、架构漂移、DPMF 漂移感知、风险评估与动态防御闭环实验。仓库重点保存实验脚本、配置、结构化结果、图表和每周说明，便于查看七周工作的推进过程和主要结论。
 
 ## 复现指南
 
-本仓库采用“实验归档仓库 + 上游原始工程”的复现方式。完整重跑 live 实验时，需要先准备上游 MemEvolve / Flash-Searcher 工程，再叠加本仓库中的实验脚本、配置和数据。
+本仓库采用“实验归档仓库 + 上游原始工程”的复现方式。完整重跑 live（在线实跑）实验时，需要先准备上游 MemEvolve / Flash-Searcher 工程，再叠加本仓库中的实验脚本、配置和数据。
 
 完整步骤见：[doc/REPRODUCE.md](doc/REPRODUCE.md)
 
@@ -31,12 +31,42 @@
 
 ## 核心概念
 
-- **记忆投毒**：向 Agent 长期记忆中写入伪造经验，使后续检索和指导受到污染。
-- **架构漂移**：记忆系统的结构、参数或策略发生变化，例如 Top-K 从 3 增加到 5，或检索策略从语义相关性优先变为历史成功率优先。
-- **DPMF**：Drift Perception Middleware Framework，漂移感知中间件框架，用于记录架构状态、检测漂移、计算风险并推荐防御。
-- **F1**：检索前静态历史统计过滤。
-- **F2**：检索后、进入 synthesis 前的 Retrieval Trust Gate。
-- **scheduler**：读取 DPMF 标准化事件，根据风险和防御建议自动选择 F0/F1/F2。
+- **记忆投毒（Memory Poisoning）**：向 Agent 长期记忆中写入伪造或恶意经验，使后续检索、回答和决策受到污染。
+- **架构漂移（Architecture Drift）**：记忆系统的结构、参数或策略发生变化，例如 Top-K 从 3 增加到 5，或检索策略从语义相关性优先变为历史成功率优先。
+- **DPMF（Drift Perception Middleware Framework）**：漂移感知中间件框架，用于记录架构状态、检测漂移、计算风险并推荐防御。
+- **Top-K**：一次检索中返回相关度最高的 K 条记忆。例如 Top-K=3 表示只取前三条检索结果。
+- **F0**：无防御基线，用于和启用防御后的结果进行对照。
+- **F1**：检索前静态历史统计过滤，在记忆进入检索链路前筛除可疑记忆。
+- **F2（Retrieval Trust Gate）**：检索可信门控。在检索完成后、进入 synthesis（记忆指导生成/综合）前再次判断记忆是否可信。
+- **scheduler（调度器）**：读取 DPMF 标准化事件，根据漂移类型、风险和防御建议自动选择 F0/F1/F2。
+
+## 指标与英文缩写速查
+
+> 本节用于帮助第一次阅读仓库的人快速理解实验表格和图中的指标。数值型比率通常位于 0～1；例如 `1.0` 表示 100%，`0.2` 表示 20%。
+
+| 缩写 / 指标 | 英文全称 | 本项目中的含义 |
+|---|---|---|
+| **Poison Hit@K** | Poison Hit at K | 投毒记忆是否进入前 K 条检索结果。本文常用 **Poison Hit@3**；多次试验汇总为 1.0 时，表示每次试验的 Top-3 中都命中了投毒记忆。 |
+| **ASR** | Attack Success Rate | **攻击成功率**。攻击最终成功影响回答或记忆指导的试验比例；ASR=1.0 表示攻击成功率 100%，ASR=0.0 表示实验中未观察到成功攻击。 |
+| **Clean Correct Rate / clean correctness** | Clean Correct Rate | **干净样本正确率**。没有把攻击成功视为目标时，系统在正常任务上的正确比例，用于衡量防御是否损害正常效用。 |
+| **Defense Block Rate** | Defense Block Rate | **防御阻断率**。进入相应防御环节的可疑/投毒记忆中，被成功拦截的比例。 |
+| **Accuracy** | Accuracy | **检测准确率**，即全部检测样本中判断正确的比例。 |
+| **Precision** | Precision | **精确率**，被系统判为“发生漂移”的样本中，真正发生漂移的比例。Precision 高意味着误报较少。 |
+| **Recall** | Recall | **召回率**，真正发生漂移的样本中，被系统成功检测出的比例。Recall 高意味着漏报较少。 |
+| **F1-score** | F1 Score | Precision 与 Recall 的调和平均，用于综合评价检测效果。**这里的 F1-score 是检测指标，不是上面的 F1 防御算子。** |
+| **TP** | True Positive | **真正例**：实际发生漂移，系统也判断发生漂移。 |
+| **TN** | True Negative | **真负例**：实际没有漂移，系统也判断没有漂移。 |
+| **FP** | False Positive | **假正例 / 误报**：实际没有漂移，但系统判断发生漂移。 |
+| **FN** | False Negative | **假负例 / 漏报**：实际发生漂移，但系统没有检测出来。 |
+| **Risk Score / Risk** | Risk Score | **综合风险分数**。DPMF 根据架构变化、正常效用变化、检索不稳定性和攻击暴露等信号综合计算；数值越高表示当前状态的安全风险越高。 |
+| **Structural Detection** | Structural Detection | **结构漂移检测**，重点检查 Top-K、检索策略等架构配置本身是否发生变化。 |
+| **Behavioral Detection** | Behavioral Detection | **行为漂移检测**，重点检查检索结果、正常效用、投毒暴露等行为信号是否发生异常变化。 |
+| **LLM** | Large Language Model | **大语言模型**。本实验中的在线回答、部分后验解释等环节会调用 LLM。 |
+| **API** | Application Programming Interface | **应用程序接口**。live 实验通过模型 API 调用在线模型。 |
+| **JSON** | JavaScript Object Notation | 常用结构化数据格式，本仓库用于保存实验配置、事件和结果。 |
+| **CSV** | Comma-Separated Values | 逗号分隔表格数据格式，本仓库用于保存映射知识库和部分统计结果。 |
+
+另外，`S0`、`D1`、`D2`、`D3`、`D4` 是**实验场景编号**而不是评价指标。`S0` 通常表示稳定/无漂移对照；`D*` 表示不同漂移场景。由于不同周次会扩展场景集合，具体定义以对应 `experiments/week*/README.md` 和配置文件为准。
 
 ## 仓库结构
 
@@ -106,18 +136,18 @@
 
 - 干净基线：7 条 strategic 记忆 + 4 条 operational 记忆。
 - 投毒后：8 条 strategic 记忆 + 5 条 operational 记忆。
-- Poison Hit@3：1.0。
-- Attack Success Rate：1.0。
+- 投毒记忆命中率（Poison Hit@3）：1.0。
+- 攻击成功率（Attack Success Rate，ASR）：1.0。
 - 查询变体迁移测试中，投毒命中率和攻击成功率均为 1.0。
 
 ### Week 3：架构漂移
 
-- D1 Top-K 3 -> 5：clean correctness 从 1.0 降至 0.6，投毒 ASR 保持 1.0。
-- D2 semantic-first -> history-first：clean correctness 从 1.0 降至 0.0，投毒 ASR 保持 1.0。
+- D1 Top-K 3 -> 5：干净样本正确率（clean correctness）从 1.0 降至 0.6，投毒攻击成功率（ASR）保持 1.0。
+- D2 semantic-first -> history-first：干净样本正确率从 1.0 降至 0.0，投毒攻击成功率（ASR）保持 1.0。
 
 ### Week 4：静态防御
 
-| 漂移场景 | 防御 | Clean Correct Rate | Attack Success Rate | Defense Block Rate |
+| 漂移场景 | 防御 | 干净样本正确率（Clean Correct Rate） | 攻击成功率（ASR） | 防御阻断率（Defense Block Rate） |
 |---|---|---:|---:|---:|
 | D1 | F0 无防御 | 0.6 | 1.0 | 0.0 |
 | D1 | F1 检索前过滤 | 0.4 | 0.0 | 1.0 |
@@ -128,20 +158,20 @@
 
 ### Week 5：DPMF 感知
 
-- D1 离线风险分数：0.6167，HIGH。
-- D2 离线风险分数：0.9120，HIGH。
-- 在线复验风险排序保持为：D2 > D1 > CONTROL。
-- DPMF 对无漂移对照输出 `drift_detected = false`。
+- D1 离线综合风险分数（Risk Score）：0.6167，HIGH（高风险）。
+- D2 离线综合风险分数：0.9120，HIGH（高风险）。
+- 在线复验风险排序保持为：D2 > D1 > CONTROL（无漂移对照）。
+- DPMF 对无漂移对照输出 `drift_detected = false`，即“未检测到架构漂移”。
 
 ### Week 6：检测评估
 
-- Structural Detection：Accuracy / Precision / Recall / F1 均为 1.0000。
-- Behavioral Detection：Accuracy 0.8800，Recall 0.9750，F1 0.9286。
-- D4 combined 风险最高，Risk Score = 0.6225，HIGH。
+- 结构漂移检测（Structural Detection）：Accuracy / Precision / Recall / F1-score 均为 1.0000。
+- 行为漂移检测（Behavioral Detection）：Accuracy 0.8800，Recall 0.9750，F1-score 0.9286。
+- D4 combined（组合漂移）风险最高，Risk Score = 0.6225，HIGH（高风险）。
 
 ### Week 7：动态防御闭环
 
-| 场景 | Risk | Defense | Clean Correct | Week7 ASR |
+| 场景 | 综合风险（Risk） | 自动防御（Defense） | 干净样本正确率（Clean Correct） | Week7 攻击成功率（ASR） |
 |---|---:|---|---:|---:|
 | S0 | 0.1500 | F0 | 1.0 | 0.0 |
 | D1 | 0.3542 | F2 | 1.0 | 0.0 |
