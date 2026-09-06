@@ -1,17 +1,11 @@
-name: memevolve-dpmf
+﻿name: memevolve
 channels:
-  - conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
   - defaults
 dependencies:
   - python=3.10
-  - pip
-  - numpy
-  - pandas
-  - matplotlib
-  - seaborn
-  - pyyaml
-  - scikit-learn
-  - tqdm
-  - python-dotenv
-  - pip:
-      - openai
+variables:
+  PYTHONPATH: E:\AIProjects\MemEvolve\Flash-Searcher-main
+prefix: E:\Anaconda_envs\envs\memevolve
