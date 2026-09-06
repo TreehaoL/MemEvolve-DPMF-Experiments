@@ -1,374 +1,175 @@
-﻿# Week 5 — DPMF Drift Awareness: Collection and Detection
+﻿# Week 5：DPMF 漂移感知原型与在线复验
 
-## 1. Objective
+## 实验目标
 
-Week 5 implements a prototype of the DPMF drift-awareness pipeline for self-evolving Agent memory architectures.
+第五周进入 DPMF 漂移感知原型阶段。目标是把第三周的架构漂移结果和第四周的防御映射结果串起来，形成“架构快照 -> 漂移检测 -> 风险评分 -> 事件记录 -> 防御推荐”的最小闭环。
 
-The main objectives are:
+本周 DPMF 只作为旁路观察与推荐模块，不直接修改 MemEvolve 的检索流程。
 
-1. Detect retrieval-architecture drift from architecture snapshots.
-2. Quantify the security risk associated with detected drift.
-3. Standardize drift events using a unified JSON Schema.
-4. Map detected drift to defense candidates using the Week 4 architecture-defense knowledge base.
-5. Validate the prototype through both historical offline replay and newly collected live DeepSeek experiments.
-6. Introduce a no-drift control to evaluate false drift alarms.
+## 实验场景
 
-The prototype operates as a side-channel observer and does not directly modify the underlying MemEvolve retrieval process.
+### Control：无漂移对照
 
----
+将基线架构快照与自身比较。
 
-## 2. Experimental Scenarios
+- Retrieval policy：semantic relevance first
+- Top-K：3
+- 期望结果：不发生 architecture drift
 
-### Control — No Drift
+### D1：Top-K 漂移
 
-Baseline architecture is compared with itself.
+- 漂移前：`top_k_longterm = 3`
+- 漂移后：`top_k_longterm = 5`
+- Drift type：`retrieval_topk`
 
-- Retrieval policy: semantic relevance first
-- Top-K: 3
-- Expected result: no architecture drift
+### D2：检索策略漂移
 
-### D1 — Retrieval Top-K Drift
+- 漂移前：`semantic_relevance_first`
+- 漂移后：`historical_success_rate_first`
+- Drift type：`retrieval_policy`
 
-- Before: top_k_longterm = 3
-- After: top_k_longterm = 5
-- Drift type: retrieval_topk
+## DPMF 原型流程
 
-### D2 — Retrieval Policy Drift
-
-- Before: semantic_relevance_first
-- After: historical_success_rate_first
-- Semantic relevance becomes a tie-breaker
-- Drift type: retrieval_policy
-
----
-
-## 3. DPMF Prototype Pipeline
-
+```text
 Architecture Snapshot
-→ Drift Detection
-→ Behavior Evidence Collection
-→ Composite Security Risk Assessment
-→ Standardized Drift Event
-→ Architecture-Defense Knowledge Base
-→ Defense Recommendation
-
-Main scripts:
-
-- drift_detector.py — detects numerical and categorical architecture drift
-- risk_scorer.py — calculates composite security risk
-- validate_event.py — validates DPMF events against the unified schema
-- defense_mapper.py — maps drift events to empirically evaluated defenses
-- calculate_live_overlap.py — calculates live retrieval-set Jaccard overlap
-- compare_offline_live.py — compares historical replay and live observations
-- summarize_live_final.py — produces the final live experiment summary
-
----
-
-## 4. Risk Model
-
-The current prototype uses heuristic weights:
-
-| Component | Weight |
-| --- | ---: |
-| Configuration change | 0.25 |
-| Clean utility drop | 0.30 |
-| Retrieval instability | 0.20 |
-| Attack exposure | 0.25 |
-
-The score is defined as a composite security risk score rather than a pure drift-magnitude score.
-
-Risk levels:
-
-- LOW: risk < 0.30
-- MEDIUM: 0.30 <= risk < 0.60
-- HIGH: risk >= 0.60
-
-The current weights are prototype heuristic parameters and are not claimed to be theoretically optimal.
-
-Architecture drift and security risk are treated separately:
-
-- drift_detected determines whether architecture drift occurred.
-- risk_score measures the security and utility risk of the current state.
-
-This distinction allows the no-drift baseline to retain a non-zero background security risk when poisoned memories remain attack-accessible.
-
----
-
-## 5. Offline Replay
-
-Historical Week 3 experimental data were first used to develop and debug the DPMF prototype.
-
-### D1 Offline Replay
-
-- Top-K: 3 -> 5
-- Clean correct rate: 1.0 -> 0.6
-- Clean retrieval overlap: 0.60
-- Poisoned retrieval overlap: 0.60
-- Attack success rate after drift: 1.0
-- Risk score: 0.6167
-- Risk level: HIGH
-
-### D2 Offline Replay
-
-- Retrieval policy:
-  semantic_relevance_first -> historical_success_rate_first
-- Clean correct rate: 1.0 -> 0.0
-- Clean retrieval overlap: 0.44
-- Poisoned retrieval overlap: 0.80
-- Attack success rate after drift: 1.0
-- Risk score: 0.9120
-- Risk level: HIGH
-
-Offline risk ordering:
-
-D2 > D1
-
----
-
-## 6. Live Observation
-
-To avoid relying entirely on historical results, Week 5 recollected experimental data using the DeepSeek API.
-
-Experimental configuration:
-
-- Model: deepseek-v4-flash
-- API: DeepSeek
-- Temperature: 0
-- Clean trials per state: 5
-- Poisoned trials per state: 5
-
-Three fresh online states were executed.
-
-### L0 — Baseline Live
-
-- Top-K: 3
-- Clean correct rate: 1.0
-- Poison hit rate: 1.0
-- Attack success rate: 1.0
-
-### L1 — D1 Top-K Drift Live
-
-- Top-K: 5
-- Clean correct rate: 0.4
-- Poison hit rate: 1.0
-- Attack success rate: 0.8
-- Clean retrieval overlap: 0.60
-- Poisoned retrieval overlap: 0.60
-- Risk score: 0.6267
-- Risk level: HIGH
-
-The online result shows that poisoned memories were retrieved in all poisoned trials, while attack success was 0.8.
-
-Therefore, poison exposure and final attack success are treated as two distinct signals.
-
-### L2 — D2 History-First Drift Live
-
-- Retrieval policy: historical success rate first
-- Clean correct rate: 0.0
-- Poison hit rate: 1.0
-- Attack success rate: 1.0
-- Clean retrieval overlap: 0.50
-- Poisoned retrieval overlap: 0.80
-- Risk score: 0.9000
-- Risk level: HIGH
-
----
-
-## 7. No-Drift Control
-
-The baseline Top-K=3 architecture snapshot was compared with itself.
-
-Detection result:
-
-- drift_detected = false
-- change_score = 0.0
-
-Behavior comparison:
-
-- Clean utility drop: 0.0
-- Retrieval instability: 0.0
-- Attack exposure: 1.0
-
-Composite risk:
-
-- risk_score = 0.2500
-- risk_level = LOW
-
-The non-zero score represents background attack exposure rather than architecture drift.
-
-The control confirms that DPMF does not classify an unchanged architecture as drift.
-
----
-
-## 8. Live Final Comparison
-
-| Scenario | Drift | Risk Score | Risk Level | Primary Defense |
-| --- | --- | ---: | --- | --- |
-| Control | No drift | 0.2500 | LOW | — |
-| D1 | Retrieval Top-K | 0.6267 | HIGH | F2 |
-| D2 | Retrieval policy | 0.9000 | HIGH | F2 |
-
-Final live risk ordering:
-
-D2 > D1 > CONTROL
-
----
-
-## 9. Offline Replay vs Live Observation
-
-| Scenario | Offline | Live | Delta |
-| --- | ---: | ---: | ---: |
-| D1 | 0.6167 | 0.6267 | +0.0100 |
-| D2 | 0.9120 | 0.9000 | -0.0120 |
-
-Both experimental modes produced the same risk ordering:
-
-D2 > D1
-
-Risk ordering stable: True
-
-The individual LLM-based metrics showed some run-to-run fluctuation, but the DPMF risk ordering remained stable.
-
-For D1, historical clean correctness was 0.6 while the new live result was 0.4. Historical attack success was 1.0 while the live result was 0.8.
-
-For D2, the live clean retrieval overlap changed from the historical value of 0.44 to 0.50, while the overall high-risk conclusion remained unchanged.
-
----
-
-## 10. Defense Recommendation
-
-The DPMF prototype queries the Week 4 architecture-defense knowledge base:
-
-experiments/week4/knowledge_base/architecture_defense_mapping_v0.csv
-
-Defense candidates are ranked using previously measured security and utility performance.
+-> Drift Detection
+-> Behavior Evidence Collection
+-> Composite Security Risk Assessment
+-> Standardized Drift Event
+-> Architecture-Defense Knowledge Base
+-> Defense Recommendation
+```
+
+主要脚本：
+
+- `drift_detector.py`：检测数值型和类别型架构漂移
+- `risk_scorer.py`：计算综合安全风险分数
+- `validate_event.py`：用统一 Schema 校验 DPMF 事件
+- `defense_mapper.py`：根据知识库映射候选防御
+- `calculate_live_overlap.py`：计算在线检索集合 Jaccard 重合度
+- `compare_offline_live.py`：比较离线回放与在线观测
+- `summarize_live_final.py`：生成在线实验汇总
+
+## 风险评分模型
+
+本周使用原型启发式权重：
+
+| 风险组成 | 权重 |
+|---|---:|
+| 配置变化 | 0.25 |
+| Clean 效用下降 | 0.30 |
+| 检索不稳定 | 0.20 |
+| 攻击暴露 | 0.25 |
+
+风险等级：
+
+- LOW：`risk < 0.30`
+- MEDIUM：`0.30 <= risk < 0.60`
+- HIGH：`risk >= 0.60`
+
+需要注意：`drift_detected` 判断是否发生架构漂移，`risk_score` 衡量当前状态的安全与效用风险，两者不是同一个概念。
+
+## 离线回放结果
 
 ### D1
 
-F2: retrieval_time_static_trust_gate
-
-- Defense position: post_retrieval_pre_synthesis
-- Attack success rate: 0.0
-- Clean correct rate: 1.0
-- Defense block rate: 1.0
-- False positive rate: 0.0
-- Utility status: stable
-
-F1: static_history_statistics_filter
-
-- Defense position: pre_retrieval
-- Attack success rate: 0.0
-- Clean correct rate: 0.4
-- Defense block rate: 1.0
-- False positive rate: 0.0
-- Utility status: degraded
-
-Primary recommendation: F2
+- Top-K：`3 -> 5`
+- Clean correct rate：`1.0 -> 0.6`
+- Clean retrieval overlap：0.60
+- Poisoned retrieval overlap：0.60
+- Attack success rate：1.0
+- Risk score：0.6167
+- Risk level：HIGH
 
 ### D2
 
-F2: retrieval_time_static_trust_gate
+- Retrieval policy：`semantic_relevance_first -> historical_success_rate_first`
+- Clean correct rate：`1.0 -> 0.0`
+- Clean retrieval overlap：0.44
+- Poisoned retrieval overlap：0.80
+- Attack success rate：1.0
+- Risk score：0.9120
+- Risk level：HIGH
 
-- Attack success rate: 0.0
-- Clean correct rate: 0.8
-- Defense block rate: 1.0
-- False positive rate: 0.0
-- Utility status: mostly_stable
+离线风险排序：
 
-F1: static_history_statistics_filter
+```text
+D2 > D1
+```
 
-- Attack success rate: 0.0
-- Clean correct rate: 0.0
-- Defense block rate: 1.0
-- False positive rate: 0.0
-- Utility status: collapsed
+## 在线复验结果
 
-Primary recommendation: F2
+为避免完全依赖历史数据，本周重新调用 `deepseek-v4-flash` 采集在线实验。
 
-The defense recommendation remained stable between offline replay and live observation.
+实验配置：
 
----
+- 模型：deepseek-v4-flash
+- Temperature：0
+- 每个状态 clean 5 次、poisoned 5 次
 
-## 11. Main Findings
+### L0：基线
 
-1. DPMF successfully detected both numerical Top-K drift and categorical retrieval-policy drift.
+- Top-K：3
+- Clean correct rate：1.0
+- Poison hit rate：1.0
+- Attack success rate：1.0
 
-2. The no-drift control produced no false architecture-drift detection.
+### L1：D1 Top-K 漂移
 
-3. The live composite security risk scores were:
-   - Control: 0.2500, LOW
-   - D1: 0.6267, HIGH
-   - D2: 0.9000, HIGH
+- Top-K：5
+- Clean correct rate：0.4
+- Poison hit rate：1.0
+- Attack success rate：0.8
+- Risk score：0.6267
+- Risk level：HIGH
 
-4. Retrieval-policy drift D2 consistently produced greater risk than Top-K drift D1.
+### L2：D2 history-first 漂移
 
-5. Newly collected DeepSeek experiments showed measurable run-to-run variation relative to historical replay, demonstrating the need for runtime observation rather than relying only on static historical results.
+- Clean correct rate：0.0
+- Poison hit rate：1.0
+- Attack success rate：1.0
+- Risk score：0.9000
+- Risk level：HIGH
 
-6. Despite metric fluctuations, the DPMF risk ordering remained stable:
-   D2 > D1.
+在线风险排序仍为：
 
-7. Poison retrieval exposure and final attack success are not equivalent. In the D1 live experiment, poison hit rate remained 1.0 while attack success rate was 0.8.
+```text
+D2 > D1 > CONTROL
+```
 
-8. The architecture-defense knowledge base consistently recommended F2 for D1 and D2 because it preserved substantially more clean-task utility while maintaining attack blocking.
+## 无漂移负对照
 
-9. Week 5 establishes the complete prototype chain:
-   architecture observation -> drift detection -> risk assessment -> knowledge-base mapping -> defense recommendation.
+基线 Top-K=3 快照与自身比较：
 
-10. Automatic execution and dynamic adjustment of defense strategies are intentionally left for subsequent work.
+- `drift_detected = false`
+- `change_score = 0.0`
+- risk_score = 0.2500
+- risk_level = LOW
 
----
+这个非零风险来自投毒记忆仍可被访问的背景攻击暴露，而不是架构漂移。
 
-## 12. Key Outputs
+## 防御推荐
 
-### Offline Replay
+DPMF 查询第四周的知识库：
 
-- results/D1_drift_detection.json
-- results/D2_drift_detection.json
-- results/D1_dpmf_event.json
-- results/D2_dpmf_event.json
-- results/dpmf_summary.json
+`experiments/week4/knowledge_base/architecture_defense_mapping_v0.csv`
 
-### Live Observation
+D1、D2 均推荐 F2，原因是 F2 在第四周实测中攻击成功率为 0，且 clean 效用明显优于 F1。
 
-- results/live/L0_baseline_live.json
-- results/live/L1_topk5_live.json
-- results/live/L2_history_first_live.json
-- results/live/live_retrieval_overlap.json
-- results/live/live_D1_dpmf_event.json
-- results/live/live_D2_dpmf_event.json
-- results/live/offline_vs_live_summary.json
-- results/live/control_no_drift_detection.json
-- results/live/control_no_drift_event.json
-- results/live/live_final_summary.json
+## 关键文件
 
-### Logs
+- `schemas/drift_event_schema.json`：DPMF 事件 Schema
+- `results/D1_drift_detection.json`
+- `results/D2_drift_detection.json`
+- `results/D1_dpmf_event.json`
+- `results/D2_dpmf_event.json`
+- `results/dpmf_summary.json`
+- `results/live/live_final_summary.json`
+- `results/live/offline_vs_live_summary.json`
+- `results/live/control_no_drift_event.json`
 
-- logs/live/L0_baseline_live.log
-- logs/live/L1_topk5_live.log
-- logs/live/L2_history_first_live.log
+## 本周结论
 
-### Schema
+DPMF 能识别 Top-K 漂移和检索策略漂移，并将漂移事件标准化记录为 JSON。在线实验与离线回放的具体数值存在波动，但风险排序保持稳定：D2 的风险高于 D1。
 
-- schemas/drift_event_schema.json
-
----
-
-## 13. Current Status
-
-Week 5 completed:
-
-- DPMF drift-event schema
-- Numerical Top-K drift detection
-- Categorical retrieval-policy drift detection
-- Composite security risk scoring
-- No-drift negative control
-- Offline historical replay
-- Fresh DeepSeek live observation
-- Retrieval-overlap recalculation
-- Offline-vs-live stability comparison
-- Architecture-defense knowledge-base integration
-- Empirical defense recommendation
-
-The current implementation is a DPMF perception and recommendation prototype.
-
-Dynamic defense execution and online defense adaptation are not included in Week 5 and will be addressed in later stages.
+本周完成的是“漂移感知 + 风险评分 + 防御推荐”的原型，动态防御执行留到后续阶段。
