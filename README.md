@@ -444,8 +444,9 @@ Paper: https://proceedings.neurips.cc/paper_files/paper/2025/hash/19909c36f51abc
 [3] Shen Dong, Shaochen Xu, Pengfei He, Yige Li, Jiliang Tang, Tianming Liu, Hui Liu, Zhen J. Xiang. **Memory Injection Attacks on LLM Agents via Query-Only Interaction**. NeurIPS 2025. DOI: 10.52202/085713-1554.  
 Paper: https://proceedings.neurips.cc/paper_files/paper/2025/hash/42a97bbd9844d2bf68596730af80bcdf-Abstract-Conference.html
 
-[4] Hao Jing, Fanxiao Li, Yunyun Dong, Wei Zhou, Renyang Liu. **Memory poisoning attacks on retrieval-augmented Large Language Model agents via deceptive semantic reasoning**. *Engineering Applications of Artificial Intelligence*, 167:113968, 2026. DOI: 10.1016/j.engappai.2026.113968.  
-Paper: https://doi.org/10.1016/j.engappai.2026.113968
+[4] Hao Jing, Fanxiao Li, Yunyun Dong, Wei Zhou, Renyang Liu. **Memory poisoning attacks on retrieval-augmented Large Language Model agents via deceptive semantic reasoning**. *Engineering Applications of Artificial Intelligence*, 167:113968, 2026. DOI: `10.1016/j.engappai.2026.113968`.  
+Repository PDF: [doc/Memory poisoning attacks on retrieval-augmented Large Language Model agents via deceptive semantic reasoning.pdf](doc/Memory%20poisoning%20attacks%20on%20retrieval-augmented%20Large%20Language%20Model%20agents%20via%20deceptive%20semantic%20reasoning.pdf)  
+Semantic Scholar: [paper record](https://www.semanticscholar.org/paper/Memory-poisoning-attacks-on-retrieval-augmented-via-Jing-Li/fd34df6d5e84fa9512fa1c01c8409bd3fe8a1c7b)
 
 [5] Qianshan Wei, Tengchao Yang, Yaochen Wang, Xinfeng Li, Lijun Li, Zhenfei Yin, Yi Zhan, Thorsten Holz, Zhiqiang Lin, XiaoFeng Wang. **A-MemGuard: A Proactive Defense Framework for LLM-Based Agent Memory**. 2025. arXiv:2510.02373.  
 Paper: https://arxiv.org/abs/2510.02373  
