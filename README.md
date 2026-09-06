@@ -140,6 +140,8 @@
 
 仅凭本仓库可以复核实验设计、配置、结果文件和图表，但不能保证从零完整复刻所有 live 实验。不同层级的复现条件如下：
 
+如果需要从零重跑 live 实验，推荐采用“两仓库复刻法”：先准备上游原始工程 `https://github.com/bingreeky/MemEvolve.git`，再将本仓库中的 `experiments/`、`data/` 和相关脚本叠加到上游工程的 `Flash-Searcher-main` 目录中。完整步骤见 `doc/REPRODUCE.md`。
+
 | 复现目标 | 仅凭本仓库是否足够 | 说明 |
 |---|---|---|
 | 阅读每周实验设计与结论 | 可以 | 每周 README、配置、结果 JSON / CSV 和图表已保留 |
