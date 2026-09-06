@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1.0",
+  "system": {
+    "framework": "MemEvolve",
+    "memory_provider": "LightweightMemoryProvider",
+    "model": null,
+    "defense_enabled": false
+  },
+  "encoding": {
+    "input_type": "successful_trajectory",
+    "encoder_type": "llm_based_extraction",
+    "model_driven": true,
+    "output_memory_types": [
+      "strategic",
+      "operational"
+    ],
+    "fields": [
+      "content",
+      "tags",
+      "usage_count",
+      "success_count",
+      "signature"
+    ]
+  },
+  "storage": {
+    "backend": "json_file",
+    "path": "experiments/week2/baseline/longterm_memory_clean.json",
+    "memory_categories": [
+      "strategic",
+      "operational"
+    ],
+    "max_items": {
+      "strategic": 30,
+      "operational": 30
+    },
+    "deduplication": "content_signature",
+    "signature_algorithm": "SHA-256"
+  },
+  "retrieval": {
+    "trigger_phase": "BEGIN",
+    "method": "llm_selection_and_synthesis",
+    "top_k": 3,
+    "candidate_scope": "all_longterm_memories",
+    "reranker": null,
+    "synthesis_enabled": true,
+    "usage_tracking": true
+  },
+  "management": {
+    "update_policy": "trajectory_absorption",
+    "write_condition": "successful_trajectory_only",
+    "pruning_enabled": true,
+    "pruning_threshold": 50,
+    "forgetting_policy": null,
+    "merge_policy": null,
+    "source_validation": false,
+    "poison_detection": false
+  }
+}

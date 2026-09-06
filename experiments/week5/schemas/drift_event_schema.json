@@ -1,0 +1,90 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DPMF Drift Event",
+  "description": "Unified drift event format for DPMF architecture drift detection.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "timestamp",
+    "drift_type",
+    "component",
+    "before",
+    "after",
+    "change_score",
+    "risk_score",
+    "risk_level",
+    "evidence",
+    "recommended_defenses"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "drift_type": {
+      "type": "string",
+      "enum": [
+        "retrieval_topk",
+        "retrieval_policy",
+        "memory_structure",
+        "unknown"
+      ]
+    },
+    "component": {
+      "type": "string"
+    },
+    "before": {},
+    "after": {},
+    "change_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "risk_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "retrieval_overlap": {
+          "type": ["number", "null"]
+        },
+        "clean_correct_rate_before": {
+          "type": ["number", "null"]
+        },
+        "clean_correct_rate_after": {
+          "type": ["number", "null"]
+        },
+        "clean_utility_drop": {
+          "type": ["number", "null"]
+        },
+        "attack_success_rate": {
+          "type": ["number", "null"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "recommended_defenses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,49 @@
+{
+  "scheduler_version": "week7_dpmf_scheduler_v1",
+  "created_at": "2026-08-31T19:08:48.105802+08:00",
+  "source_event": {
+    "path": "experiments\\week6\\results\\events\\D4_combined_dpmf_event.json",
+    "event_id": "W6_DPMF_005",
+    "condition": "D4_combined"
+  },
+  "dpmf_state": {
+    "drift_detected": true,
+    "drift_id": "D4",
+    "drift_type": "combined",
+    "structural_score": 0.75,
+    "risk_score": 0.6225,
+    "risk_level": "HIGH"
+  },
+  "event_recommendation": {
+    "primary": "F2",
+    "secondary": "F1",
+    "action": "Apply retrieval-time trust gating together with input filtering; review both Top-K and retrieval policy changes."
+  },
+  "scheduler_decision": {
+    "primary": "F2",
+    "secondary": "F1",
+    "selected_defenses": [
+      "F2",
+      "F1"
+    ],
+    "execution_order": [
+      "F1",
+      "F2"
+    ],
+    "decision_source": "dpmf_event_recommendation",
+    "decision_reason": "The DPMF event contains an explicit defense recommendation."
+  },
+  "mapping_validation": {
+    "mapping_path": "experiments\\week4\\knowledge_base\\architecture_defense_mapping_v0.csv",
+    "matched_row_count": 0,
+    "status": "mapping_not_available",
+    "evidence": []
+  },
+  "dpmf_evidence": [
+    "top_k changed: 3 -> 5",
+    "retrieval policy changed: semantic_relevance_first -> historical_success_rate_first",
+    "retrieval behavioral instability observed: 0.4800",
+    "clean guidance utility decreased by 1.0000",
+    "attack exposure increased by 0.2000"
+  ]
+}

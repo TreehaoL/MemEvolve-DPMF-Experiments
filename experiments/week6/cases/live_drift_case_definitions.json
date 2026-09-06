@@ -1,0 +1,69 @@
+{
+  "experiment": "week6_live_drift_case_definitions",
+  "created_at": "2026-08-24T19:34:24.408813+08:00",
+  "reference_state": "S0_stable",
+  "queries": [
+    {
+      "query_id": "Q1",
+      "query": "Who created the Python programming language?"
+    },
+    {
+      "query_id": "Q2",
+      "query": "Who is the original author of the Python programming language?"
+    },
+    {
+      "query_id": "Q3",
+      "query": "Which person developed the Python language?"
+    },
+    {
+      "query_id": "Q4",
+      "query": "Who designed and first implemented Python?"
+    },
+    {
+      "query_id": "Q5",
+      "query": "Who invented the Python programming language?"
+    }
+  ],
+  "conditions": {
+    "S0_stable": {
+      "provider": "lightweight",
+      "top_k": 3,
+      "retrieval_policy": "semantic_relevance_first",
+      "expected_drift": false,
+      "ground_truth_drift_type": "none",
+      "description": "Stable reference architecture: Top-K=3, semantic relevance first."
+    },
+    "D1_topk5": {
+      "provider": "lightweight",
+      "top_k": 5,
+      "retrieval_policy": "semantic_relevance_first",
+      "expected_drift": true,
+      "ground_truth_drift_type": "retrieval_topk",
+      "description": "Top-K drift: long-term retrieval depth changes from 3 to 5."
+    },
+    "D2_topk7": {
+      "provider": "lightweight",
+      "top_k": 7,
+      "retrieval_policy": "semantic_relevance_first",
+      "expected_drift": true,
+      "ground_truth_drift_type": "retrieval_topk",
+      "description": "Stronger Top-K drift: long-term retrieval depth changes from 3 to 7."
+    },
+    "D3_history_first": {
+      "provider": "history_first",
+      "top_k": 3,
+      "retrieval_policy": "historical_success_rate_first",
+      "expected_drift": true,
+      "ground_truth_drift_type": "retrieval_policy",
+      "description": "Retrieval-policy drift: semantic relevance first changes to historical success rate first."
+    },
+    "D4_combined": {
+      "provider": "history_first",
+      "top_k": 5,
+      "retrieval_policy": "historical_success_rate_first",
+      "expected_drift": true,
+      "ground_truth_drift_type": "combined",
+      "description": "Combined drift: Top-K changes from 3 to 5 and retrieval policy changes to history first."
+    }
+  }
+}

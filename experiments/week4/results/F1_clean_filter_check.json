@@ -1,0 +1,11 @@
+{
+  "experiment": "Week4_F1_clean_filter_check",
+  "total_clean_memories": 11,
+  "false_positive_count": 0,
+  "false_positive_rate": 0.0,
+  "removed_memories": [],
+  "defense": {
+    "usage_threshold": 10,
+    "success_rate_threshold": 0.95
+  }
+}

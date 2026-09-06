@@ -1,0 +1,125 @@
+{
+  "experiment": "week6_summary",
+  "created_at": "2026-08-24T20:18:14.521669+08:00",
+  "model": "deepseek-v4-flash",
+  "reference_condition": "S0_stable",
+  "dataset": {
+    "reference_samples": 10,
+    "test_samples": 50,
+    "stable_negative_samples": 10,
+    "drift_positive_samples": 40,
+    "behavior_threshold": 0.4
+  },
+  "detection_metrics": {
+    "structural": {
+      "TP": 40,
+      "TN": 10,
+      "FP": 0,
+      "FN": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "specificity": 1.0
+    },
+    "behavioral": {
+      "TP": 39,
+      "TN": 5,
+      "FP": 5,
+      "FN": 1,
+      "accuracy": 0.88,
+      "precision": 0.8864,
+      "recall": 0.975,
+      "f1": 0.9286,
+      "false_positive_rate": 0.5,
+      "specificity": 0.5
+    },
+    "fused": {
+      "TP": 40,
+      "TN": 5,
+      "FP": 5,
+      "FN": 0,
+      "accuracy": 0.9,
+      "precision": 0.8889,
+      "recall": 1.0,
+      "f1": 0.9412,
+      "false_positive_rate": 0.5,
+      "specificity": 0.5
+    },
+    "drift_type_classification": {
+      "overall_type_accuracy": 1.0,
+      "drift_only_type_accuracy": 1.0
+    }
+  },
+  "conditions": {
+    "S0_repeat": {
+      "drift_detected": false,
+      "drift_type": "none",
+      "top_k": 3,
+      "retrieval_policy": "semantic_relevance_first",
+      "avg_retrieval_instability": 0.28,
+      "risk_score": 0.15,
+      "risk_level": "LOW",
+      "primary_defense": "NONE",
+      "secondary_defense": null
+    },
+    "D1_topk5": {
+      "drift_detected": true,
+      "drift_type": "retrieval_topk",
+      "top_k": 5,
+      "retrieval_policy": "semantic_relevance_first",
+      "avg_retrieval_instability": 0.4267,
+      "risk_score": 0.3542,
+      "risk_level": "MEDIUM",
+      "primary_defense": "F2",
+      "secondary_defense": null
+    },
+    "D2_topk7": {
+      "drift_detected": true,
+      "drift_type": "retrieval_topk",
+      "top_k": 7,
+      "retrieval_policy": "semantic_relevance_first",
+      "avg_retrieval_instability": 0.5714,
+      "risk_score": 0.3979,
+      "risk_level": "MEDIUM",
+      "primary_defense": "F2",
+      "secondary_defense": null
+    },
+    "D3_history_first": {
+      "drift_detected": true,
+      "drift_type": "retrieval_policy",
+      "top_k": 3,
+      "retrieval_policy": "historical_success_rate_first",
+      "avg_retrieval_instability": 0.5,
+      "risk_score": 0.54,
+      "risk_level": "MEDIUM",
+      "primary_defense": "F2",
+      "secondary_defense": null
+    },
+    "D4_combined": {
+      "drift_detected": true,
+      "drift_type": "combined",
+      "top_k": 5,
+      "retrieval_policy": "historical_success_rate_first",
+      "avg_retrieval_instability": 0.48,
+      "risk_score": 0.6225,
+      "risk_level": "HIGH",
+      "primary_defense": "F2",
+      "secondary_defense": "F1"
+    }
+  },
+  "llm_explanation": {
+    "model": "deepseek-v4-flash",
+    "role": "post-hoc explanation only; not drift decision",
+    "event_count": 5
+  },
+  "key_findings": [
+    "Structural drift detection achieved 100% accuracy, precision, recall, and F1 on the 50-sample Week 6 test set.",
+    "Drift-type classification achieved 100% accuracy for explicit Top-K, retrieval-policy, and combined drift.",
+    "Behavioral detection achieved 88% accuracy, 97.5% recall, and 92.86% F1, but produced a 50% false-positive rate on stable controls.",
+    "Stable architecture can exhibit retrieval behavior fluctuations without structural drift.",
+    "Structural drift can occur while the retrieved memory set remains temporarily unchanged, forming a silent-drift case.",
+    "DPMF therefore uses structural state as the primary drift criterion and behavioral change as auxiliary risk evidence."
+  ]
+}

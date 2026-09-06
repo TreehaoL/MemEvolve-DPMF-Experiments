@@ -1,0 +1,9 @@
+{
+    "scenario_id":  "D1",
+    "scenario_name":  "top_k_baseline",
+    "drift_type":  "retrieval_configuration_drift",
+    "parameter":  "top_k_longterm",
+    "value":  3,
+    "query":  "Who created the Python programming language?",
+    "trials_per_group":  5
+}

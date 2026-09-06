@@ -1,0 +1,31 @@
+{
+  "experiment": "week5_dpmf_live_final_summary",
+  "score_semantics": "composite_security_risk",
+  "scenarios": {
+    "control_no_drift": {
+      "drift_detected": false,
+      "risk_score": 0.25,
+      "risk_level": "LOW",
+      "primary_defense": null
+    },
+    "D1_retrieval_topk": {
+      "drift_detected": true,
+      "risk_score": 0.6267,
+      "risk_level": "HIGH",
+      "primary_defense": "F2"
+    },
+    "D2_retrieval_policy": {
+      "drift_detected": true,
+      "risk_score": 0.9,
+      "risk_level": "HIGH",
+      "primary_defense": "F2"
+    }
+  },
+  "conclusion": {
+    "control_remains_low_risk": true,
+    "D1_detected_high_risk": true,
+    "D2_detected_high_risk": true,
+    "D2_higher_than_D1": true,
+    "risk_order": "D2>D1>CONTROL"
+  }
+}

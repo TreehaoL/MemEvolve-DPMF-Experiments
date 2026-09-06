@@ -1,0 +1,16 @@
+{
+  "drift_detected": true,
+  "drift_type": "retrieval_policy",
+  "component": "retriever",
+  "parameter": "retrieval_policy",
+  "before": "semantic_relevance_first",
+  "after": "historical_success_rate_first",
+  "direction": "changed",
+  "change_score": 1.0,
+  "structural_changes": {
+    "semantic_relevance_role": {
+      "before": null,
+      "after": "tie_breaker"
+    }
+  }
+}

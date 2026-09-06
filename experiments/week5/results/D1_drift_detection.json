@@ -1,0 +1,10 @@
+{
+  "drift_detected": true,
+  "drift_type": "retrieval_topk",
+  "component": "retriever",
+  "parameter": "top_k_longterm",
+  "before": 3,
+  "after": 5,
+  "direction": "increase",
+  "change_score": 0.6667
+}

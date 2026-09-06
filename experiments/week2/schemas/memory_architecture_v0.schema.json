@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "memory_architecture_v0.schema.json",
+  "title": "Unified Agent Memory Architecture Schema v0",
+  "description": "统一描述智能体记忆系统的编码、存储、检索和管理四个模块。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "system",
+    "encoding",
+    "storage",
+    "retrieval",
+    "management"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "system": {
+      "type": "object",
+      "required": [
+        "framework",
+        "memory_provider"
+      ],
+      "properties": {
+        "framework": {
+          "type": "string"
+        },
+        "memory_provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": ["string", "null"]
+        },
+        "defense_enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "encoding": {
+      "type": "object",
+      "required": [
+        "input_type",
+        "encoder_type",
+        "output_memory_types"
+      ],
+      "properties": {
+        "input_type": {
+          "type": "string"
+        },
+        "encoder_type": {
+          "type": "string"
+        },
+        "model_driven": {
+          "type": "boolean"
+        },
+        "output_memory_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "storage": {
+      "type": "object",
+      "required": [
+        "backend",
+        "path",
+        "memory_categories"
+      ],
+      "properties": {
+        "backend": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "memory_categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "max_items": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "deduplication": {
+          "type": ["string", "null"]
+        },
+        "signature_algorithm": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "retrieval": {
+      "type": "object",
+      "required": [
+        "trigger_phase",
+        "method",
+        "top_k"
+      ],
+      "properties": {
+        "trigger_phase": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "top_k": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "candidate_scope": {
+          "type": "string"
+        },
+        "reranker": {
+          "type": ["string", "null"]
+        },
+        "synthesis_enabled": {
+          "type": "boolean"
+        },
+        "usage_tracking": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "management": {
+      "type": "object",
+      "required": [
+        "update_policy",
+        "write_condition",
+        "pruning_enabled"
+      ],
+      "properties": {
+        "update_policy": {
+          "type": "string"
+        },
+        "write_condition": {
+          "type": "string"
+        },
+        "pruning_enabled": {
+          "type": "boolean"
+        },
+        "pruning_threshold": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "forgetting_policy": {
+          "type": ["string", "null"]
+        },
+        "merge_policy": {
+          "type": ["string", "null"]
+        },
+        "source_validation": {
+          "type": "boolean"
+        },
+        "poison_detection": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

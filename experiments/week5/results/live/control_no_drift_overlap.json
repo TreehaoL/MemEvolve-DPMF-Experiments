@@ -1,0 +1,9 @@
+﻿{
+  "metric": "Jaccard retrieval-set overlap",
+  "source": "week5_live_no_drift_control",
+  "pairing_method": "L0 compared with itself",
+  "averages": {
+    "D1_clean": 1.0,
+    "D1_poisoned": 1.0
+  }
+}

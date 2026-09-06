@@ -1,0 +1,353 @@
+{
+  "metric": "Jaccard retrieval-set overlap",
+  "source": "week5_live_observation",
+  "pairing_method": "Same group and same trial number",
+  "averages": {
+    "D1_clean": 0.6,
+    "D1_poisoned": 0.6,
+    "D2_clean": 0.5,
+    "D2_poisoned": 0.8
+  },
+  "records": [
+    {
+      "scenario_id": "D1",
+      "group": "clean",
+      "trial": 1,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "operational_0",
+        "operational_1"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "clean",
+      "trial": 2,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "operational_0",
+        "operational_1"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "clean",
+      "trial": 3,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "operational_0",
+        "operational_1"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "clean",
+      "trial": 4,
+      "before_ids": [
+        "strategic_1",
+        "strategic_4",
+        "strategic_0"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "operational_0",
+        "operational_1"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "clean",
+      "trial": 5,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "operational_0",
+        "operational_1"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "poisoned",
+      "trial": 1,
+      "before_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_1"
+      ],
+      "after_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_1",
+        "strategic_4",
+        "strategic_0"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "poisoned",
+      "trial": 2,
+      "before_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "strategic_7",
+        "operational_4"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "poisoned",
+      "trial": 3,
+      "before_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_3",
+        "strategic_7",
+        "operational_4"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "poisoned",
+      "trial": 4,
+      "before_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "strategic_7",
+        "operational_4"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D1",
+      "group": "poisoned",
+      "trial": 5,
+      "before_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_1"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4",
+        "strategic_7",
+        "operational_4"
+      ],
+      "jaccard_overlap": 0.6
+    },
+    {
+      "scenario_id": "D2",
+      "group": "clean",
+      "trial": 1,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_2"
+      ],
+      "jaccard_overlap": 0.5
+    },
+    {
+      "scenario_id": "D2",
+      "group": "clean",
+      "trial": 2,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_2"
+      ],
+      "jaccard_overlap": 0.5
+    },
+    {
+      "scenario_id": "D2",
+      "group": "clean",
+      "trial": 3,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_2"
+      ],
+      "jaccard_overlap": 0.5
+    },
+    {
+      "scenario_id": "D2",
+      "group": "clean",
+      "trial": 4,
+      "before_ids": [
+        "strategic_1",
+        "strategic_4",
+        "strategic_0"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_2"
+      ],
+      "jaccard_overlap": 0.5
+    },
+    {
+      "scenario_id": "D2",
+      "group": "clean",
+      "trial": 5,
+      "before_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_1",
+        "strategic_2"
+      ],
+      "jaccard_overlap": 0.5
+    },
+    {
+      "scenario_id": "D2",
+      "group": "poisoned",
+      "trial": 1,
+      "before_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_1"
+      ],
+      "after_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_1"
+      ],
+      "jaccard_overlap": 1.0
+    },
+    {
+      "scenario_id": "D2",
+      "group": "poisoned",
+      "trial": 2,
+      "before_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "after_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "jaccard_overlap": 1.0
+    },
+    {
+      "scenario_id": "D2",
+      "group": "poisoned",
+      "trial": 3,
+      "before_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "after_ids": [
+        "strategic_1",
+        "strategic_7",
+        "operational_4"
+      ],
+      "jaccard_overlap": 0.5
+    },
+    {
+      "scenario_id": "D2",
+      "group": "poisoned",
+      "trial": 4,
+      "before_ids": [
+        "strategic_0",
+        "strategic_7",
+        "operational_4"
+      ],
+      "after_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_0"
+      ],
+      "jaccard_overlap": 1.0
+    },
+    {
+      "scenario_id": "D2",
+      "group": "poisoned",
+      "trial": 5,
+      "before_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_1"
+      ],
+      "after_ids": [
+        "strategic_7",
+        "operational_4",
+        "strategic_0"
+      ],
+      "jaccard_overlap": 0.5
+    }
+  ]
+}

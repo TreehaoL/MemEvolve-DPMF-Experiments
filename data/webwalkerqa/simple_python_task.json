@@ -1,0 +1,17 @@
+[
+  {
+    "question": "Who created the Python programming language?",
+    "answer": "Guido van Rossum",
+    "root_url": "https://www.python.org/",
+    "info": {
+      "domain": "education",
+      "difficulty_level": "easy",
+      "lang": "en",
+      "type": "single_source",
+      "source_website": [
+        "python.org"
+      ],
+      "golden_path": []
+    }
+  }
+]

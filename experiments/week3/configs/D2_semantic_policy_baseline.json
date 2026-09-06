@@ -1,0 +1,8 @@
+{
+    "scenario_id":  "D2",
+    "stage":  "before_drift",
+    "retrieval_policy":  "semantic_relevance_first",
+    "top_k_longterm":  3,
+    "query":  "Who created the Python programming language?",
+    "trials_per_group":  5
+}
